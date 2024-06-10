@@ -6,7 +6,7 @@
 [Meshroom](#https://alicevision.org/) is an open source tool for creating 3d models out of images, the purpose of this repository is create a code that can use the CLI tool of the software to automate the process of creating 3d meshes.
 
 #### Technologies used: ####
-* Python 3.7
+* Python 3.10
 * Meshroom 2023.3.0
 
 #### Setup ####
