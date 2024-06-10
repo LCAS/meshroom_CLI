@@ -7,7 +7,7 @@
 
 #### Technologies used: ####
 * Python 3.7
-* Meshroom 2020.1.1
+* Meshroom 2023.3.0
 
 #### Setup ####
 The code of the project is located in the Meshroom_CLI.py script, which contains a function for each of the nodes used in Meshroom. The Main function of the script call all the nodes one by one creating folders for each of the steps. 
@@ -26,7 +26,7 @@ The user should provide 3 paths separated by single blank spaces and using absol
 The code can be called used the .bat file (which has to be previously modified with the 3 folders), here is an example:
 
 ```
-python meshroom_CLI.py "C:\Users\user\Desktop\Meshroom-2020.1.1\aliceVision\bin" "C:\Users\user\Desktop\Output" "C:\Users\user\Desktop\Images"
+python meshroom_CLI.py "C:\Users\user\Desktop\Meshroom-2023.3.0\aliceVision\bin" "C:\Users\user\Desktop\Output" "C:\Users\user\Desktop\Images"
 ```
 
 The user can of course call the python file from the command line without using the bat file.
@@ -53,11 +53,11 @@ The final mesh containing the texture(s) should be in the 13_texturing folder.
 The dense point cloud output should be in the last folder (14_convertSFMFormat).
 
 ### The script ###
-The script contains 13 functions (one for each node). Each function calls a .exe file located in the Bin folder of the Meshroom directory and passes the necesary parameters to run it. In general, all the meshroom functions requiere one or various input files and and output files. Specifically, each function requires some other parameters. For our use, we only set as variables the parameters that we consider to be necesary for our workflow. These parameters are set as parameters in the functions. All the other parameters are hardcoded.
+The script contains 14 functions (one for each node). Each function calls a .exe file located in the Bin folder of the Meshroom directory and passes the necesary parameters to run it. In general, all the meshroom functions requiere one or various input files and and output files. Specifically, each function requires some other parameters. For our use, we only set as variables the parameters that we consider to be necesary for our workflow. These parameters are set as parameters in the functions. All the other parameters are hardcoded.
 
 
 ### Small image set ###
 
-for testing purposes, there is a small database of 6 pictures located in /dataset_monstree-master/mini6 . Those files are not needed to run the code and can be dismissed.
+for testing purposes, there is a small database of 6 pictures located in /dataset_monstree/mini6. Those files are not needed to run the code and can be dismissed. Additional tomato plant data set (dataset_tomato01) is also available for testing.
 
 
