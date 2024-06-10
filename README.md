@@ -19,7 +19,7 @@ python meshroom_CLI.py
 ##PATH_OF_FOLDER_WITH_IMAGES##
 ```
 The user should provide 3 paths separated by single blank spaces and using absolute paths , paths should be written inside quotation marks:
-* The path to the Bin folder, located in the Meshroom directory /aliceVision (in the 2020.1.1 version)
+* The path to the Bin folder, located in the Meshroom directory /aliceVision (in the 2023.3.0 version)
 * The folder for the outputs. If the folder doesn't exist the script will create a new one
 * The folder containing the images. It should onnly contain image files and nothing else.
 
@@ -32,7 +32,7 @@ python meshroom_CLI.py "C:\Users\user\Desktop\Meshroom-2023.3.0\aliceVision\bin"
 The user can of course call the python file from the command line without using the bat file.
 
 ### Output ###
-The script generates 13 folders:
+The script generates 14 folders:
 * 1_CameraInit
 * 2_FeatureExtraction
 * 3_ImageMatching
