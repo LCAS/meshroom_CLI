@@ -46,8 +46,11 @@ The script generates 13 folders:
 * 11_MeshDecimate
 * 12_MeshResampling
 * 13_Texturing
+* 14_convertSFMFormat
 
-The final mesh containing the texture(s) should be in the last folder (13_texturing). 
+The final mesh containing the texture(s) should be in the 13_texturing folder. 
+
+The dense point cloud output should be in the last folder (14_convertSFMFormat).
 
 ### The script ###
 The script contains 13 functions (one for each node). Each function calls a .exe file located in the Bin folder of the Meshroom directory and passes the necesary parameters to run it. In general, all the meshroom functions requiere one or various input files and and output files. Specifically, each function requires some other parameters. For our use, we only set as variables the parameters that we consider to be necesary for our workflow. These parameters are set as parameters in the functions. All the other parameters are hardcoded.
@@ -58,5 +61,3 @@ The script contains 13 functions (one for each node). Each function calls a .exe
 for testing purposes, there is a small database of 6 pictures located in /dataset_monstree-master/mini6 . Those files are not needed to run the code and can be dismissed.
 
 
-### Linux Implementation ###
-For linux users, please use the code from the branch Linux
