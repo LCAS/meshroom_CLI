@@ -1,5 +1,5 @@
 # Meshroom implementation by David Castano for Windows. This adaptation of his code by Dr. Anirudh Rao (Imperial College London) to run on Linux machines. 
-# Updated by Abdurrahman Yilmaz (ayilmaz@lincoln.ac.uk)
+# Updated by Abdurrahman Yilmaz (ayilmaz@lincoln.ac.uk) v03
 
 import sys
 import os , os.path
@@ -11,6 +11,8 @@ from pathlib import Path
 dirname = os.path.dirname(os.path.abspath(__file__))  # Absolute path of this file
 
 verboseLevel = 'error'  # detail of the logs (error, info, etc)
+
+baseDir = ""
 
 
 def SilentMkdir(theDir):    # function to create a directory
@@ -59,7 +61,7 @@ def run_2_featureExtraction(binPath,baseDir , numberOfImages , imagesPerGroup=40
 
     cmdLine = binPath + "aliceVision_featureExtraction"
     cmdLine += " --input {0} --output {1}".format(_input, output)
-    cmdLine += " --forceCpuExtraction 1"
+    cmdLine += " --forceCpuExtraction 0"
 
 
     #when there are more than 40 images, it is good to send them in groups
@@ -190,7 +192,6 @@ def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2
 
     cmdLine += " --verboseLevel " + verboseLevel
     cmdLine += " --downscale " + str(downscale)
-
     
     numberOfBatches = int(math.ceil( numberOfImages / groupSize ))
 
@@ -202,8 +203,6 @@ def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2
             cmd = cmdLine + (" --rangeStart {} --rangeSize {}".format(str(groupStart),str(groupSize)))       
             print(cmd)
             os.system(cmd)
-
-
 
 
 def run_8_depthMapFilter(binPath,baseDir):
@@ -353,22 +352,75 @@ def run_13_texturing(binPath , baseDir , textureSide = 16384 , downscale=1 , unw
     os.system(cmdLine)
 
 
+# Add ImageMatchingMultiSfM for recursive update 
+
 
 def main():
+
+    first_iteration_ = True
+    global baseDir
 
     # Pass the arguments of the function as parameters in the command line code
     binPath = sys.argv[1]           ##  --> path of the binary files from Meshroom
     baseDir = sys.argv[2]           ##  --> name of the Folder containing the process (a new folder will be created)
     imgDir = sys.argv[3]            ##  --> Folder containing the images 
 
-    numberOfImages =  len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])      ## number of files in the folder
-
     SilentMkdir(baseDir)
 
-    startTime = time.time()
+    try:
+        while True:
+
+            startTime = time.time()
+
+            numberOfImages = len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])
+
+            if first_iteration_:
+                if numberOfImages > 0:
+                    print("Images found in the directory. Starting Meshroom processing.")
+                    updateProcess(binPath, imgDir, numberOfImages)
+                    endTime = time.time()
+                    hours, rem = divmod(endTime-startTime, 3600)
+                    minutes, seconds = divmod(rem, 60)
+                    print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+                first_iteration_ = False
+            elif checkForNewImages(numberOfImages):
+                print("New images detected. Updating the Meshroom processing steps.")
+                updateProcess(binPath, imgDir, numberOfImages)
+                endTime = time.time()
+                hours, rem = divmod(endTime-startTime, 3600)
+                minutes, seconds = divmod(rem, 60)
+                print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+            else:
+                print("No new images detected. Waiting for changes...")
+                time.sleep(5)  # 5 seconds wait for new check
+    
+    except KeyboardInterrupt:
+        print("\nProcess interrupted by user. Exiting...")
+
+def checkForNewImages(currentCount):
+    global baseDir
+    lastCountFile = os.path.join(baseDir, "last_image_count.txt")
+
+    if os.path.exists(lastCountFile):
+        with open(lastCountFile, "r") as f:
+            lastCount = int(f.read().strip())
+        if currentCount > lastCount:
+            # Update the last count file
+            with open(lastCountFile, "w") as f:
+                f.write(str(currentCount))
+            return True
+        else:
+            return False
+    else:
+        # First run, create the last count file
+        with open(lastCountFile, "w") as f:
+            f.write(str(currentCount))
+        return False
+
+def updateProcess(binPath, imgDir, numberOfImages):
 
     run_1_cameraInit(binPath,baseDir,imgDir)
-    run_2_featureExtraction(binPath,baseDir , numberOfImages)
+    run_2_featureExtraction(binPath,baseDir, numberOfImages)
     run_3_imageMatching(binPath,baseDir)
     run_4_featureMatching(binPath,baseDir,numberOfImages)
     run_5_structureFromMotion(binPath,baseDir)
@@ -376,19 +428,12 @@ def main():
     run_7_depthMap(binPath,baseDir , numberOfImages )
     run_8_depthMapFilter(binPath,baseDir)
     run_9_meshing(binPath,baseDir)
-    run_10_meshFiltering(binPath,baseDir)
-    run_11_meshDecimate(binPath,baseDir)
-    run_12_meshResampling(binPath,baseDir)
-    run_13_texturing(binPath,baseDir)
+    #run_10_meshFiltering(binPath,baseDir)
+    #run_11_meshDecimate(binPath,baseDir)
+    #run_12_meshResampling(binPath,baseDir)
+    #run_13_texturing(binPath,baseDir)
     run_14_convertSFMFormat(binPath,baseDir)
 
-    
-    print("-------------------------------- DONE ----------------------")
-    endTime = time.time()
-    hours, rem = divmod(endTime-startTime, 3600)
-    minutes, seconds = divmod(rem, 60)
-    print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
-    #raw_input("press any key to close")
 
-
-main()
+if __name__ == "__main__":
+    main()
