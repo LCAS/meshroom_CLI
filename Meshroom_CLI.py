@@ -3,7 +3,7 @@
 
 import sys
 import os , os.path
-import shutil
+#import shutil
 import math
 import time
 from pathlib import Path
@@ -364,6 +364,7 @@ def main():
     binPath = sys.argv[1]           ##  --> path of the binary files from Meshroom
     baseDir = sys.argv[2]           ##  --> name of the Folder containing the process (a new folder will be created)
     imgDir = sys.argv[3]            ##  --> Folder containing the images 
+    rerunCylce = 5 ## --> Reconstruction rerun every ... number of new images
 
     SilentMkdir(baseDir)
 
@@ -375,7 +376,7 @@ def main():
             numberOfImages = len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])
 
             if first_iteration_:
-                if numberOfImages > 0:
+                if numberOfImages > 5:
                     print("Images found in the directory. Starting Meshroom processing.")
                     updateProcess(binPath, imgDir, numberOfImages)
                     endTime = time.time()
@@ -383,7 +384,7 @@ def main():
                     minutes, seconds = divmod(rem, 60)
                     print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
                 first_iteration_ = False
-            elif checkForNewImages(numberOfImages):
+            elif checkForNewImages(numberOfImages, rerunCylce):
                 print("New images detected. Updating the Meshroom processing steps.")
                 updateProcess(binPath, imgDir, numberOfImages)
                 endTime = time.time()
@@ -397,15 +398,14 @@ def main():
     except KeyboardInterrupt:
         print("\nProcess interrupted by user. Exiting...")
 
-def checkForNewImages(currentCount):
+def checkForNewImages(currentCount, rerunLimit):
     global baseDir
     lastCountFile = os.path.join(baseDir, "last_image_count.txt")
 
     if os.path.exists(lastCountFile):
         with open(lastCountFile, "r") as f:
             lastCount = int(f.read().strip())
-        if currentCount > lastCount:
-            # Update the last count file
+        if currentCount >= lastCount + rerunLimit:
             with open(lastCountFile, "w") as f:
                 f.write(str(currentCount))
             return True
