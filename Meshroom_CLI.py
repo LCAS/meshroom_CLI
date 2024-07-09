@@ -1,5 +1,5 @@
 # Meshroom implementation by David Castano for Windows. This adaptation of his code by Dr. Anirudh Rao (Imperial College London) to run on Linux machines. 
-# Updated by Abdurrahman Yilmaz (ayilmaz@lincoln.ac.uk) v03
+# Updated by Abdurrahman Yilmaz (ayilmaz@lincoln.ac.uk) v04
 
 import sys
 import os , os.path
@@ -7,6 +7,14 @@ import os , os.path
 import math
 import time
 from pathlib import Path
+import json
+import pandas as pd
+from scipy.spatial.transform import Rotation as R
+from scipy.optimize import least_squares
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+
+from io import StringIO
 
 dirname = os.path.dirname(os.path.abspath(__file__))  # Absolute path of this file
 
@@ -327,8 +335,6 @@ def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.0 , maxVertic
     os.system(cmdLine)
 
 
-
-
 def run_13_texturing(binPath , baseDir , textureSide = 16384 , downscale=1 , unwrapMethod = "Basic", fillholes="True"):
     taskFolder = '/13_Texturing'
     SilentMkdir(baseDir + taskFolder)
@@ -376,9 +382,10 @@ def main():
             numberOfImages = len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])
 
             if first_iteration_:
-                if numberOfImages > 5:
+                if numberOfImages > rerunCylce:
                     print("Images found in the directory. Starting Meshroom processing.")
                     updateProcess(binPath, imgDir, numberOfImages)
+                    scalePC()
                     endTime = time.time()
                     hours, rem = divmod(endTime-startTime, 3600)
                     minutes, seconds = divmod(rem, 60)
@@ -387,6 +394,7 @@ def main():
             elif checkForNewImages(numberOfImages, rerunCylce):
                 print("New images detected. Updating the Meshroom processing steps.")
                 updateProcess(binPath, imgDir, numberOfImages)
+                scalePC()
                 endTime = time.time()
                 hours, rem = divmod(endTime-startTime, 3600)
                 minutes, seconds = divmod(rem, 60)
@@ -417,23 +425,145 @@ def checkForNewImages(currentCount, rerunLimit):
             f.write(str(currentCount))
         return False
 
+def parse_estimated_poses(sfm_file):
+    with open(sfm_file, 'r') as f:
+        data = json.load(f)
+    poses = {}
+
+    # Create a mapping from poseId to image name
+    poseid_to_imagename = {}
+    for view in data['views']:
+        pose_id = view['poseId']
+        image_path = view['path']
+        image_name = os.path.basename(image_path)  # Extract the image name from the full path
+        poseid_to_imagename[pose_id] = image_name
+
+    # Parse the poses and add the image name to each
+    for pose in data['poses']:
+        pose_id = pose['poseId']
+        rotation = pose['pose']['transform']['rotation']
+        center = pose['pose']['transform']['center']
+        image_name = poseid_to_imagename.get(pose_id, "Unknown")  # Get the image name for the poseId
+        poses[pose_id] = {
+            'rotation': [float(r) for r in rotation],
+            'center': [float(c) for c in center],
+            'image_name': image_name  # Add the image name
+        }
+
+    return poses
+
+def parse_real_poses(csv_file):
+    # Assuming the order: image_name, x, y, z, roll, pitch, yaw
+    df = pd.read_csv(csv_file, header=None, names=['image_name', 'x', 'y', 'z', 'roll', 'pitch', 'yaw'], sep=',')
+    poses = {}
+    for index, row in df.iterrows():
+        image_name = row['image_name']
+        print("image_name: ", image_name)
+        position = row[['x', 'y', 'z']].tolist()
+        orientation = row[['roll', 'pitch', 'yaw']].tolist()
+        poses[image_name] = {
+            'position': [float(p) for p in position],
+            'orientation': [float(o) for o in orientation]
+        }
+    return poses
+
+def rpy_to_rotation_matrix(rpy):
+    r = R.from_euler('xyz', rpy)
+    return r.as_matrix().flatten().tolist()
+
+def find_affine_transformation(points, target_points):
+    """
+    Find the affine transformation that maps points to target_points.
+    :param points: numpy array of shape (N, 3) representing the points
+    :param target_points: numpy array of shape (N, 3) representing the target points
+    :return: The affine parameters as numpy array of shape (12,)
+    """
+    initial_params = np.zeros(12)
+    result = least_squares(residuals, initial_params, args=(points, target_points))
+    return result.x
+
+def affine_transformation(points, affine_params):
+    """
+    Apply an affine transformation to the given points.
+    :param points: numpy array of shape (N, 3) representing the points
+    :param affine_params: numpy array of shape (12,) representing the affine parameters (9 for the matrix and 3 for the translation)
+    :return: Transformed points as numpy array of shape (N, 3)
+    """
+    A = affine_params[:9].reshape(3, 3)
+    b = affine_params[9:]
+    return np.dot(points, A.T) + b
+
+def residuals(affine_params, points, target_points):
+    """
+    Compute residuals for the affine transformation fitting.
+    :param affine_params: numpy array of shape (12,) representing the affine parameters
+    :param points: numpy array of shape (N, 3) representing the points
+    :param target_points: numpy array of shape (N, 3) representing the target points
+    :return: Residuals as numpy array of shape (N*3,)
+    """
+    transformed_points = affine_transformation(points, affine_params)
+    return (transformed_points - target_points).flatten()
+
 def updateProcess(binPath, imgDir, numberOfImages):
+    print("No need to update")
 
-    run_1_cameraInit(binPath,baseDir,imgDir)
-    run_2_featureExtraction(binPath,baseDir, numberOfImages)
-    run_3_imageMatching(binPath,baseDir)
-    run_4_featureMatching(binPath,baseDir,numberOfImages)
-    run_5_structureFromMotion(binPath,baseDir)
-    run_6_prepareDenseScene(binPath,baseDir)
-    run_7_depthMap(binPath,baseDir , numberOfImages )
-    run_8_depthMapFilter(binPath,baseDir)
-    run_9_meshing(binPath,baseDir)
-    #run_10_meshFiltering(binPath,baseDir)
-    #run_11_meshDecimate(binPath,baseDir)
-    #run_12_meshResampling(binPath,baseDir)
-    #run_13_texturing(binPath,baseDir)
-    run_14_convertSFMFormat(binPath,baseDir)
+    #run_1_cameraInit(binPath,baseDir,imgDir)
+    #run_2_featureExtraction(binPath,baseDir, numberOfImages)
+    #run_3_imageMatching(binPath,baseDir)
+    #run_4_featureMatching(binPath,baseDir,numberOfImages)
+    #run_5_structureFromMotion(binPath,baseDir)
+    #run_6_prepareDenseScene(binPath,baseDir)
+    #run_7_depthMap(binPath,baseDir , numberOfImages )
+    #run_8_depthMapFilter(binPath,baseDir)
+    #run_9_meshing(binPath,baseDir)
+    ##run_10_meshFiltering(binPath,baseDir)
+    ##run_11_meshDecimate(binPath,baseDir)
+    ##run_12_meshResampling(binPath,baseDir)
+    ##run_13_texturing(binPath,baseDir)
+    #run_14_convertSFMFormat(binPath,baseDir)
 
+def scalePC():
+    taskFolder = "/5_structureFromMotion"
+    outputViewsAndPoses = baseDir + taskFolder + '/cameras.sfm' 
+    estimated_poses = parse_estimated_poses(outputViewsAndPoses)
+
+    print("Estimated Poses:", estimated_poses)
+
+    real_poses = parse_real_poses('/home/ayilmaz/AGRI-Opencore/DataSet_Franka_Arm/20240205_trial04_all_lattices_in_an_order/image_info_meshroom_trial.csv')
+
+    for image_name, pose in real_poses.items():
+        orientation = pose['orientation']
+        #print(f"Converting RPY for {image_name}: {orientation}")
+        real_poses[image_name]['rotation_matrix'] = rpy_to_rotation_matrix(pose['orientation'])
+    
+    print("Real Poses with Rotation Matrices:", real_poses)
+
+    # Collect corresponding points
+    estimated_points = []
+    real_points = []
+
+    for image_name, real_pose in real_poses.items():
+        for pose_id, estimated_pose in estimated_poses.items():
+            print("estimated_pose['image_name']: ", estimated_pose['image_name'])
+            if image_name == estimated_pose['image_name']:
+                estimated_points.append(estimated_pose['center'])
+                real_points.append(real_pose['position'])
+
+    P = np.array(estimated_points)
+    Q = np.array(real_points)
+
+    # Find the optimal transformation
+    affine_params = find_affine_transformation(P, Q)
+
+    print("Affine transformation: ", affine_params)
+
+    # Apply the affine transformation to the estimated points
+    transformed_points = affine_transformation(P, affine_params)
+
+    # Print out transformed points and real points to see the similarity
+    for i in range(len(Q)):
+        print(f"Real Point {i}: {Q[i]}")
+        print(f"Transformed Point {i}: {transformed_points[i]}")
 
 if __name__ == "__main__":
     main()
