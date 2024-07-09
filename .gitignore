@@ -1,7 +1,6 @@
-Meshroom-2020.1.1/
+Meshroom-202*.*.*/
 tests/
 dataset_monstree/mini6/
-Meshroom_CLI_v01.py
-Meshroom_CLI_v02.py
+Meshroom_CLI_v*.py
 HowToRun
 output/
