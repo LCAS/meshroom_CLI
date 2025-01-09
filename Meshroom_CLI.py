@@ -33,7 +33,7 @@ def SilentMkdir(theDir):    # function to create a directory
         pass
     return 0
 
-def run_0_downsampleImages(baseDir,imgDir,downsample_factor):
+def run_0_downsampleImages(baseDir, imgDir, downsample_factor):
 
     taskFolder = '/0_DownsampledImages'
     outputDir = baseDir + taskFolder
@@ -62,7 +62,7 @@ def run_0_downsampleImages(baseDir,imgDir,downsample_factor):
                 except Exception as e:
                     print(f"Error processing {filename}: {e}")
 
-def run_1_cameraInit(binPath,baseDir,imgDir,downsample_factor):
+def run_1_cameraInit(binPath, baseDir, imgDir, downsample_factor):
 
     taskFolder = '/1_CameraInit'
     SilentMkdir(baseDir + taskFolder)
@@ -92,7 +92,7 @@ def run_1_cameraInit(binPath,baseDir,imgDir,downsample_factor):
     return 0
 
 
-def run_2_featureExtraction(binPath,baseDir , numberOfImages , imagesPerGroup=40, describerdensity="ultra",describerquality="ultra"):
+def run_2_featureExtraction(binPath, baseDir, numberOfImages, imagesPerGroup=40, describerdensity="ultra",describerquality="ultra"):
 
     taskFolder = "/2_FeatureExtraction"
     SilentMkdir(baseDir + taskFolder)
@@ -121,7 +121,7 @@ def run_2_featureExtraction(binPath,baseDir , numberOfImages , imagesPerGroup=40
         os.system(cmdLine)
 
 
-def run_3_imageMatching(binPath,baseDir):
+def run_3_imageMatching(binPath, baseDir):
 
     taskFolder = "/3_ImageMatching"
     SilentMkdir(baseDir + taskFolder)
@@ -143,7 +143,7 @@ def run_3_imageMatching(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_4_featureMatching(binPath,baseDir,numberOfImages,imagesPerGroup=20):
+def run_4_featureMatching(binPath, baseDir, numberOfImages, imagesPerGroup = 20):
 
     taskFolder = "/4_featureMatching"
     SilentMkdir(baseDir + taskFolder)
@@ -179,7 +179,7 @@ def run_4_featureMatching(binPath,baseDir,numberOfImages,imagesPerGroup=20):
         print(cmdLine)
         os.system(cmdLine)
 
-def run_5_structureFromMotion(binPath,baseDir):
+def run_5_structureFromMotion(binPath, baseDir):
 
     taskFolder = "/5_structureFromMotion"
     SilentMkdir(baseDir + taskFolder)
@@ -203,7 +203,7 @@ def run_5_structureFromMotion(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_6_prepareDenseScene(binPath,baseDir):
+def run_6_prepareDenseScene(binPath, baseDir):
     taskFolder = "/6_PrepareDenseScene"
     SilentMkdir(baseDir + taskFolder)
 
@@ -220,7 +220,7 @@ def run_6_prepareDenseScene(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2):
+def run_7_depthMap(binPath, baseDir, numberOfImages, groupSize=6, downscale = 2):
     taskFolder = "/7_DepthMap"
     SilentMkdir(baseDir + taskFolder)
 
@@ -248,7 +248,7 @@ def run_7_depthMap(binPath,baseDir ,numberOfImages , groupSize=6 , downscale = 2
             os.system(cmd)
 
 
-def run_8_depthMapFilter(binPath,baseDir):
+def run_8_depthMapFilter(binPath, baseDir):
     taskFolder = "/8_DepthMapFilter"
     SilentMkdir(baseDir + taskFolder)
 
@@ -267,7 +267,7 @@ def run_8_depthMapFilter(binPath,baseDir):
     os.system(cmdLine)
 
 
-def run_9_meshing(binPath,baseDir  , maxInputPoints = 500000000  , maxPoints=100000000, colorizeoutput="True"):
+def run_9_meshing(binPath, baseDir, maxInputPoints = 500000000, maxPoints=100000000, colorizeoutput="True"):
     taskFolder = "/9_Meshing"
     SilentMkdir(baseDir + taskFolder)
 
@@ -289,7 +289,7 @@ def run_9_meshing(binPath,baseDir  , maxInputPoints = 500000000  , maxPoints=100
     print(cmdLine)
     os.system(cmdLine)
 
-def run_14_convertSFMFormat(binPath,baseDir  , SFMFileFormat = "ply"):
+def run_14_convertSFMFormat(binPath, baseDir, SFMFileFormat = "ply"):
     taskFolder = "/14_convertSFMFormat"
     describers = "unknown"
     SilentMkdir(baseDir + taskFolder)
@@ -311,7 +311,7 @@ def run_14_convertSFMFormat(binPath,baseDir  , SFMFileFormat = "ply"):
     os.system(cmdLine)
 
 
-def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True", smoothingiterations=100):
+def run_10_meshFiltering(binPath, baseDir, keepLargestMeshOnly="True", smoothingiterations=100):
     taskFolder = "/10_MeshFiltering"
     SilentMkdir(baseDir + taskFolder)
 
@@ -330,7 +330,7 @@ def run_10_meshFiltering(binPath,baseDir ,keepLargestMeshOnly="True", smoothingi
     os.system(cmdLine)
 
 
-def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.0 , maxVertices=100000):
+def run_11_meshDecimate(binPath, baseDir, simplificationFactor=0.0, maxVertices=1000000, minVertices=100000):
     taskFolder = "/11_MeshDecimate"
     SilentMkdir(baseDir + taskFolder)
 
@@ -345,12 +345,13 @@ def run_11_meshDecimate(binPath,baseDir , simplificationFactor=0.0 , maxVertices
     cmdLine += " --verboseLevel " + verboseLevel
     cmdLine += " --simplificationFactor " + str(simplificationFactor)
     cmdLine += " --maxVertices " + str(maxVertices)
+    cmdLine += " --minVertices " + str(minVertices)
 
     print(cmdLine)
     os.system(cmdLine)
 
 
-def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.0 , maxVertices=100000):
+def run_12_meshResampling(binPath, baseDir, simplificationFactor=0.0, maxVertices=1000000, minVertices=100000):
     taskFolder = "/12_MeshResampling"
     SilentMkdir(baseDir + taskFolder)
 
@@ -359,17 +360,18 @@ def run_12_meshResampling(binPath,baseDir , simplificationFactor=0.0 , maxVertic
     outputMesh = baseDir  + taskFolder + '/mesh.obj'
 
     cmdLine = binPath + "aliceVision_meshResampling"
-    cmdLine += " --input {0}  --output {1}".format( inputMesh, outputMesh)
+    cmdLine += " --input {0}  --output {1}".format(inputMesh, outputMesh)
 
     cmdLine += " --verboseLevel " + verboseLevel
     cmdLine += " --simplificationFactor " + str(simplificationFactor)
     cmdLine += " --maxVertices " + str(maxVertices)
+    cmdLine += " --minVertices " + str(minVertices)
 
     print(cmdLine)
     os.system(cmdLine)
 
 
-def run_13_texturing(binPath , baseDir , textureSide = 16384 , downscale=1 , unwrapMethod = "Basic", fillholes="True"):
+def run_13_texturing(binPath, baseDir, textureSide = 16384, downscale=1, unwrapMethod = "Basic", fillholes="True", textureFileType="png", flipNormals="True"):
     taskFolder = '/13_Texturing'
     SilentMkdir(baseDir + taskFolder)
 
@@ -387,13 +389,13 @@ def run_13_texturing(binPath , baseDir , textureSide = 16384 , downscale=1 , unw
     cmdLine += " --downscale " + str(downscale)
     cmdLine += " --verboseLevel " + verboseLevel
     cmdLine += " --unwrapMethod " + unwrapMethod
+    cmdLine += " --colorMappingFileType " + textureFileType
+    cmdLine += " --flipNormals " + flipNormals
 
     print(cmdLine)
     os.system(cmdLine)
 
-
 # Add ImageMatchingMultiSfM for recursive update 
-
 
 def main():
 
@@ -404,8 +406,14 @@ def main():
     binPath = sys.argv[1]           ##  --> path of the binary files from Meshroom
     baseDir = sys.argv[2]           ##  --> name of the Folder containing the process (a new folder will be created)
     imgDir = sys.argv[3]            ##  --> Folder containing the images 
-    if len(sys.argv) > 4:
-        downsample_factor = float(sys.argv[4]) ##  --> To downsample input images 
+    if len(sys.argv) > 3:
+        downsample_factor = float(sys.argv[4]) ##  --> To downsample input images
+        print(f"Downsample scale constant: {downsample_factor}") 
+        if len(sys.argv) > 4:
+            reconstruct = sys.argv[5].lower() in ["true", "1", "yes"]
+            print(f"Execute 3D Reconstruction stage: {reconstruct}") 
+        else:
+            reconstruct = True
     else:
         downsample_factor = 1.0
     rerunCylce = 5 ## --> Reconstruction rerun every ... number of new images
@@ -418,28 +426,34 @@ def main():
             startTime = time.time()
 
             numberOfImages = len([name for name in os.listdir(imgDir) if os.path.isfile(os.path.join(imgDir, name))])
-
-            if first_iteration_:
-                if numberOfImages > rerunCylce:
-                    print("Images found in the directory. Starting Meshroom processing.")
+            if reconstruct:
+                if first_iteration_:
+                    if numberOfImages > rerunCylce:
+                        print("Images found in the directory. Starting Meshroom processing.")
+                        updateProcess(binPath, imgDir, numberOfImages, downsample_factor)
+                        scalePC()
+                        endTime = time.time()
+                        hours, rem = divmod(endTime-startTime, 3600)
+                        minutes, seconds = divmod(rem, 60)
+                        print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
+                    first_iteration_ = False
+                elif checkForNewImages(numberOfImages, rerunCylce):
+                    print("New images detected. Updating the Meshroom processing steps.")
                     updateProcess(binPath, imgDir, numberOfImages, downsample_factor)
                     scalePC()
                     endTime = time.time()
                     hours, rem = divmod(endTime-startTime, 3600)
                     minutes, seconds = divmod(rem, 60)
                     print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
-                first_iteration_ = False
-            elif checkForNewImages(numberOfImages, rerunCylce):
-                print("New images detected. Updating the Meshroom processing steps.")
+                else:
+                    print("No new images detected. Waiting for changes...")
+                    time.sleep(5)  # 5 seconds wait for new check
+            else:
                 updateProcess(binPath, imgDir, numberOfImages, downsample_factor)
-                scalePC()
                 endTime = time.time()
                 hours, rem = divmod(endTime-startTime, 3600)
                 minutes, seconds = divmod(rem, 60)
                 print("time elapsed: "+"{:0>2}:{:0>2}:{:05.2f}".format(int(hours),int(minutes),seconds))
-            else:
-                print("No new images detected. Waiting for changes...")
-                time.sleep(5)  # 5 seconds wait for new check
     
     except KeyboardInterrupt:
         print("\nProcess interrupted by user. Exiting...")
@@ -554,10 +568,10 @@ def updateProcess(binPath, imgDir, numberOfImages, downsample_factor=1.0):
     run_7_depthMap(binPath,baseDir , numberOfImages )
     run_8_depthMapFilter(binPath,baseDir)
     run_9_meshing(binPath,baseDir)
-    #run_10_meshFiltering(binPath,baseDir)
-    #run_11_meshDecimate(binPath,baseDir)
-    #run_12_meshResampling(binPath,baseDir)
-    #run_13_texturing(binPath,baseDir)
+    run_10_meshFiltering(binPath,baseDir)
+    run_11_meshDecimate(binPath,baseDir)
+    run_12_meshResampling(binPath,baseDir)
+    run_13_texturing(binPath,baseDir)
     run_14_convertSFMFormat(binPath,baseDir)
 
 def scalePC():
